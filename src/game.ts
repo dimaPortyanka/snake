@@ -7,18 +7,19 @@ import { seedUpdate } from './seedUpdate'
 import { Stack } from './stack'
 import { scoreField } from './score'
 
-const BASE_FRAME_UPDATE_FREQUANCE = 500
+const BASE_FRAME_UPDATE_FREQUANCE = 200
 
 function start():void {
     let speed = 1
     let timePerUpdate = BASE_FRAME_UPDATE_FREQUANCE / speed
     let curDirection = Directions.UP
-    let tail = new Stack<Directions>([Directions.UP, Directions.UP])
 
     let snakeHeadCoordinate: Point = {
         x: 0,
         y: 0,
     }
+
+    let tail = new Stack<Point>([{ x: 0, y: -1 }, { x: 0, y: -2 }])
 
     listenUserInput()
     .subscribe((newDirection) => {
@@ -41,10 +42,13 @@ function start():void {
     }
 
     seedUpdate(seedCoordinate, visibleWidth, visibleHeight, leftBorder, bottomBorder)
+    scoreField.update(0)
 
     const gameLoop = () => {
+        tail.add({
+            ...snakeHeadCoordinate,
+        })
         updateCoordinate(snakeHeadCoordinate, curDirection)
-        tail.add(curDirection)
 
         if (
             snakeHeadCoordinate.x > rightBorder ||
@@ -52,7 +56,17 @@ function start():void {
             snakeHeadCoordinate.y > topBorder ||
             snakeHeadCoordinate.y < bottomBorder
         ) {
-            console.log('out of borders')
+            alert('Out of borders!')
+
+            return
+        }
+
+        const intersection = tail.getValues().find(({ x, y }) => {
+            return snakeHeadCoordinate.x == x && snakeHeadCoordinate.y == y
+        })
+
+        if (intersection) {
+            alert("You've eaten yourself!")
 
             return
         }
